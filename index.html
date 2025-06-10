@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GhostType</title>
+  <title>FlowType</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -129,7 +129,7 @@
 
   <!-- Title screen -->
   <div id="titleScreen">
-    <h1>GhostType</h1>
+    <h1>FlowType</h1>
     <div id="themeName"></div>
     <div id="pressEnter">Press Enter To Play</div>
   </div>
@@ -273,7 +273,54 @@ function startGame2() {
 }
     function initTest2(){ tot=0; correct=0; wpmEl2.textContent=0; accEl2.textContent=100; dynEl.innerHTML=''; idx=0; const p=texts[Math.floor(Math.random()*texts.length)]; chars=p.split('').map(c=>{const s=document.createElement('span'); s.textContent=c; dynEl.appendChild(s); return s;}); chars[0].classList.add('caret'); chase2(); startTime=null; document.addEventListener('keydown',type2); setTimeout(()=>wrapEl.style.transform='translateX(0)',50); }
     function chase2(){ const c=chars[idx], off=Math.max(c.offsetLeft-window.innerWidth*0.25,0); dynEl.style.transform=`translateX(${-off}px)`; }
-    function type2(e){ if(!startTime) startTime=Date.now(); if(e.key.length!==1&&e.key!=='Backspace') return; e.preventDefault(); tot++; const s=chars[idx]; if(e.key===s.textContent){ correct++; s.classList.remove('caret'); s.classList.add('correct'); idx++; } else if(e.key==='Backspace'&&idx>0){ chars[idx].classList.remove('caret'); idx--; chars[idx].classList.remove('correct','incorrect'); chars[idx].classList.add('caret'); updateStats2(); chase2(); return;} else{ s.classList.add('incorrect'); setTimeout(()=>s.classList.remove('incorrect'),100);} if(idx<chars.length){ chars.forEach(x=>x.classList.remove('caret')); chars[idx].classList.add('caret'); chase2(); } else{ updateStats2(); endTest2(); return;} updateStats2(); }
+function type2(e) {
+  // Start timer on first keypress
+  if (!startTime) startTime = Date.now();
+  // Only handle character keys and Backspace
+  if (e.key.length !== 1 && e.key !== 'Backspace') return;
+  e.preventDefault();
+  tot++;
+
+  const s = chars[idx];
+  const expected = s.textContent;
+  const input    = e.key;
+  // Treat straight apostrophe ' as correct when expected is curly ’
+  const isApos   = expected === '’' && input === "'";
+
+  if (input === expected || isApos) {
+    // Correct key
+    correct++;
+    s.classList.remove('caret');
+    s.classList.add('correct');
+    idx++;
+  } else if (input === 'Backspace' && idx > 0) {
+    // Handle backspace: move back one character
+    chars[idx].classList.remove('caret');
+    idx--;
+    chars[idx].classList.remove('correct', 'incorrect');
+    chars[idx].classList.add('caret');
+    updateStats2();
+    chase2();
+    return;
+  } else {
+    // Incorrect key: flash red
+    s.classList.add('incorrect');
+    setTimeout(() => s.classList.remove('incorrect'), 100);
+  }
+
+  // Move caret or end test
+  if (idx < chars.length) {
+    chars.forEach(x => x.classList.remove('caret'));
+    chars[idx].classList.add('caret');
+    chase2();
+  } else {
+    updateStats2();
+    endTest2();
+    return;
+  }
+
+  updateStats2();
+}
     function updateStats2(){ const m=(Date.now()-startTime)/60000||1/60; wpmEl2.textContent=Math.round((correct/5)/m); accEl2.textContent=Math.round((correct/tot)*100)||0; }
     function endTest2(){ document.removeEventListener('keydown',type2); bodyEl.classList.remove('game-start'); bodyEl.classList.add('game-end'); endEl.classList.add('fade-in'); }
   </script>
